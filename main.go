@@ -1,5 +1,10 @@
 package main
 
 func main()  {
-	startRepl()
+	state := config{
+		commands: getCommands(),
+		next: "https://pokeapi.co/api/v2/location-area/", 
+		previous: nil,
+	}
+	startRepl(&state)
 }

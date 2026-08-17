@@ -11,6 +11,7 @@ import (
 type Client struct {
 	cache      pokecache.Cache
 	httpClient http.Client
+	dex        Dex
 }
 
 // NewClient -
@@ -20,5 +21,6 @@ func NewClient(timeout, cacheInterval time.Duration) Client {
 		httpClient: http.Client{
 			Timeout: timeout,
 		},
+		dex: NewDex(),
 	}
 }

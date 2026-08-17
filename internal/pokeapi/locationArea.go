@@ -1,41 +1,50 @@
 package pokeapi
 
 import (
-	"net/http"
 	"encoding/json"
-	"fmt"
 	"io"
+	"net/http"
 )
 
-type locationArea struct {
-	Count    int    `json:"count"`
-	Next     string `json:"next"`
-	Previous *string    `json:"previous"`
-	Results  []struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} `json:"results"`
-}
+// ListLocations -
+func (c *Client) ListLocations(pageURL *string) (RespShallowLocations, error) {
+	url := baseURL + "/location-area"
+	if pageURL != nil {
+		url = *pageURL
+	}
 
-func GetLocationArea(url string) (locationArea, error) {
-	res, err := http.Get(url)
+	if val, ok := c.cache.Get(url); ok {
+		locationsResp := RespShallowLocations{}
+		err := json.Unmarshal(val, &locationsResp)
+		if err != nil {
+			return RespShallowLocations{}, err
+		}
+
+		return locationsResp, nil
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return locationArea{}, err
+		return RespShallowLocations{}, err
 	}
 
-	if res.StatusCode > 299 {
-		return locationArea{}, fmt.Errorf("Http request failed with statuscode: %v", res.StatusCode)
-	}
-	defer res.Body.Close()
-	data, err := io.ReadAll(res.Body)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return locationArea{}, err
+		return RespShallowLocations{}, err
+	}
+	defer resp.Body.Close()
+
+	dat, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return RespShallowLocations{}, err
 	}
 
-	var location locationArea
-	if err := json.Unmarshal(data, &location); err != nil {
-		return locationArea{}, err
+	locationsResp := RespShallowLocations{}
+	err = json.Unmarshal(dat, &locationsResp)
+	if err != nil {
+		return RespShallowLocations{}, err
 	}
 
-	return location, nil
+	c.cache.Add(url, dat)
+	return locationsResp, nil
 }

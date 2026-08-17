@@ -1,10 +1,16 @@
 package main
 
-func main()  {
-	state := config{
-		commands: getCommands(),
-		next: "https://pokeapi.co/api/v2/location-area/", 
-		previous: nil,
+import (
+	"time"
+	"github.com/maximilian-1011/pokedexcli/internal/pokeapi"
+)
+
+func main() {
+	pokeClient := pokeapi.NewClient(5*time.Second, time.Minute*5)
+	cfg := &config{
+		commands:      getCommands(),
+		pokeapiClient: pokeClient,
 	}
-	startRepl(&state)
+
+	startRepl(cfg)
 }
